@@ -224,9 +224,7 @@ function renderTimeline(data) {
       <h3>${escapeHtml(data.topic || "Timeline")}</h3>
       <p>${escapeHtml(data.summary || "")}</p>
       <div class="tl-summary-stats">
-        <span class="tl-stat">🚨 Misinfo: <strong>${data.misinfo_count || 0}</strong></span>
-        <span class="tl-stat">✅ Fact-checks: <strong>${data.fact_check_count || 0}</strong></span>
-        <span class="tl-stat">📰 Total events: <strong>${(data.events || []).length}</strong></span>
+        <span class="tl-stat">📝 Total Steps: <strong>${(data.events || []).length}</strong></span>
       </div>
     </div>`;
 

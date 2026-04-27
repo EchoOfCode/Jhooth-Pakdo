@@ -1,125 +1,87 @@
-# 🛡️ Jhooth Pakdo — झूठ पकड़ो
+# 🗳️ Chunav Guide — India's Interactive Election Assistant
 
-**India's Election Misinformation Firewall** | *"Catch the Lie"*
+**Understand the Election Process, Timelines, and Steps.**
 
-> In the 2024 Indian elections, political parties collectively spent an estimated **$50 million** on AI-generated content — much of it disinformation. There was **zero** neutral, citizen-first AI tool that fights back. Until now.
-
----
-
-## 🚀 What It Does
-
-Jhooth Pakdo is an AI-powered fact-checking tool that lets any Indian citizen instantly verify political claims, WhatsApp forwards, and social media posts.
-
-| Feature | Description |
-|---|---|
-| 🔍 **Fact Check** | Paste any claim and get a verdict: TRUE ✅, FALSE ❌, MISLEADING ⚠️, UNVERIFIABLE 🔍, or SATIRE 🎭 |
-| 📊 **Timeline** | Generate structured misinformation timelines for any political topic |
-| 🗣️ **Multilingual** | Works in Hindi, English, and Hinglish |
-| ⚖️ **Neutral** | No party affiliation — purely citizen-first |
+> **Hackathon Submission:** Creating an assistant that helps users understand the election process, timelines, and steps in an interactive and easy-to-follow way.
 
 ---
 
-## 🏗️ Tech Stack
+## 🎯 Chosen Vertical
+**Civic Tech & Voter Education.** 
+We chose to focus on building an interactive, highly accessible guide that empowers Indian citizens by demystifying the complex electoral process. 
 
-| Layer | Technology | Why |
-|---|---|---|
-| **Backend** | Python + FastAPI | Clean, typed, fast. Runs in a small Docker container |
-| **AI** | Gemini 2.0 Flash | Generous free tier, fast, counts as Google service integration |
-| **Frontend** | Vanilla HTML/CSS/JS | No build step, no node_modules, well under 10 MB |
-| **Deploy** | Google Cloud Run | ~$0.000024/request-second, 2M free requests/month |
+## 🧠 Approach and Logic
+Elections in India involve massive scale and complex rules. Text-heavy websites from official sources can be overwhelming for new or rural voters. Our logic was to create an AI-powered conversational assistant ("Chunav Guide") that:
+1. Translates complex election jargon into simple, actionable steps.
+2. Structures timelines visually (e.g., General Election schedules, registration deadlines).
+3. Grounds every answer in real-time, factual data using **Google Search Grounding**.
+
+## ⚙️ How the Solution Works
+Chunav Guide is a single-page interactive web application:
+- **Chat Assistant**: Users can ask natural language questions (in English, Hindi, or Hinglish) like *"How do I register to vote?"*. The backend sends this to Google's **Gemini 2.0 Flash API**.
+- **Visual Timelines**: Users can input a process (e.g., *"EVM Counting"*). The AI structures the process into a chronological JSON payload, which the frontend renders as a beautiful, color-coded timeline.
+- **Search Grounding**: To prevent hallucinations, the AI is natively integrated with the Google Search API to fetch live electoral rules and data.
+
+## 🤔 Assumptions Made
+- Users have basic internet connectivity to load the web app.
+- Users may not know official terminology, so the AI is instructed to be highly tolerant of spelling errors and multilingual input (Hinglish).
 
 ---
 
-## 📂 Project Structure
+## 🌟 Evaluation Focus Areas
 
-```
-├── backend/
-│   ├── main.py              # FastAPI app entry point
-│   ├── routes/
-│   │   ├── chat.py           # Gemini chat endpoint
-│   │   └── timeline.py       # Structured timeline endpoint
-│   ├── services/
-│   │   └── gemini.py         # Gemini API wrapper
-│   └── tests/
-│       └── test_api.py       # pytest tests
-├── frontend/
-│   ├── index.html            # Single-page app
-│   ├── style.css             # Design system
-│   └── app.js                # Frontend logic
-├── Dockerfile                # Cloud Run–ready container
-├── .env.example              # Environment variable template
-└── README.md
-```
+### 1. Code Quality
+- **Architecture**: Clean separation of concerns (Frontend UI -> FastAPI Router -> Gemini Service).
+- **Maintainability**: Typed Python backend, modular CSS/JS without heavy frameworks (Vanilla JS keeps the repo < 500KB).
+- **Structure**: Easy to read and scale for future features.
+
+### 2. Security
+- **API Protection**: API keys are securely managed via environment variables and never exposed to the frontend.
+- **Dependency Safety**: Minimal Python dependencies to reduce the attack surface.
+
+### 3. Efficiency
+- **Hyper-Lean Repo**: No `node_modules` or complex build steps. The entire app is lightning fast.
+- **Fallback Logic**: The Gemini service implements an asynchronous retry and model-fallback mechanism (switching to `gemini-2.0-flash-lite` if rate limits are hit) ensuring high availability.
+
+### 4. Testing
+- Includes a robust `pytest` suite testing API health, input validation, and mocking the Gemini SDK to ensure backend resilience without burning API credits.
+
+### 5. Accessibility
+- **Design**: High contrast dark-mode UI with clear semantic HTML.
+- **Inclusive UX**: Large typography, intuitive icons, and responsive design for mobile devices (where most Indian voters access the internet).
+
+### 6. Google Services (Meaningful Integration)
+This project deeply integrates the Google Cloud ecosystem:
+1. **Google Cloud Run**: Containerized deployment for scalable, serverless execution.
+2. **Google Generative AI (Gemini 2.0 Flash)**: The core intelligence engine powering the interactive chat and timeline structuring.
+3. **Google Search Grounding**: The Gemini model is explicitly configured with `tools=[{"google_search": {}}]` to fetch real-time, accurate election data natively through Google's search graph, ensuring the civic information is factual and up-to-date.
 
 ---
 
 ## ⚡ Quick Start
 
 ### 1. Clone & Configure
-
 ```bash
 git clone <repo-url> && cd jhooth-pakdo
 cp .env.example .env
 # Edit .env and add your Gemini API key from https://aistudio.google.com/
 ```
 
-### 2. Install Dependencies
-
+### 2. Run Locally
 ```bash
 pip install -r backend/requirements.txt
-```
-
-### 3. Run Locally
-
-```bash
 cd backend
 uvicorn main:app --reload --port 8000
 ```
 
-Open [http://localhost:8000](http://localhost:8000)
-
-### 4. Run Tests
-
+### 3. Deploy to Google Cloud Run
 ```bash
-cd backend
-pytest tests/ -v
-```
-
----
-
-## 🐳 Docker
-
-```bash
-docker build -t jhooth-pakdo .
-docker run -p 8080:8080 -e GEMINI_API_KEY=your_key jhooth-pakdo
-```
-
----
-
-## ☁️ Deploy to Cloud Run
-
-```bash
-gcloud run deploy jhooth-pakdo \
+gcloud run deploy chunav-guide \
   --source . \
   --region asia-south1 \
   --allow-unauthenticated \
   --set-env-vars GEMINI_API_KEY=your_key
 ```
 
-Estimated cost: **< $5/month** for demo usage.
-
----
-
-## ⚖️ Principles
-
-1. **🏛️ Politically Neutral** — No party affiliation, no bias
-2. **🔍 Source-First** — Every verdict cites verifiable sources
-3. **🗣️ Multilingual** — Hindi, English, Hinglish
-4. **🔒 Private** — We don't store user queries
-5. **🌐 Open** — Transparent methodology
-
----
-
 ## 📄 License
-
 MIT — Built for India's citizens 🇮🇳

@@ -53,51 +53,39 @@ async def _call_with_fallback(config, contents):
     raise last_err  # all models exhausted
 
 # ── System prompts ──────────────────────────────────────────
-FACT_CHECK_SYSTEM = """You are "Jhooth Pakdo" (झूठ पकड़ो) — India's election misinformation detection AI.
+ASSISTANT_SYSTEM = """You are "Chunav Guide" (चुनाव गाइड) — India's Interactive Election Assistant.
 
 Your role:
-1. Analyse any claim, news headline, WhatsApp forward, or social-media post related to Indian politics/elections.
-2. Determine a VERDICT: TRUE ✅, FALSE ❌, MISLEADING ⚠️, UNVERIFIABLE 🔍, or SATIRE 🎭.
-3. Provide a clear, sourced explanation in simple language (Hindi-English mix is fine).
-4. Suggest what a citizen should do (share, ignore, report).
+1. Help users understand the election process in India in a simple, interactive, and easy-to-follow way.
+2. Provide step-by-step guidance on voting (e.g., how to register, find polling booths, what IDs to bring).
+3. Explain election timelines, schedules, and important dates.
+4. Keep the tone helpful, encouraging, and neutral. Do not express political opinions.
+5. You have access to Google Search to fetch real-time, accurate election data. Always ground your responses in facts.
 
-Rules:
-- Be politically NEUTRAL. Never favour any party.
-- Cite verifiable sources (Election Commission of India, PIB Fact Check, reputable news).
-- If you're unsure, say so — never fabricate certainty.
-- Flag common manipulation tactics (deepfakes, out-of-context clips, doctored screenshots).
-- Respond in the same language the user writes in (Hindi, English, or Hinglish).
-- Keep responses concise but thorough.
-- Use bullet points for readability.
-- Always end with a "🛡️ Citizen Action" recommendation.
+Format your response:
+## 🗳️ Election Guidance
+[Clear, step-by-step explanation or answer]
 
-Format your response as follows:
-## 🔎 Claim Analysis
-[Brief restatement of the claim]
+## 📅 Timeline Context (if applicable)
+[When does this happen in the election cycle?]
 
-## 📊 Verdict: [VERDICT EMOJI + LABEL]
-[Confidence: High/Medium/Low]
-
-## 📝 Explanation
-[Detailed analysis with sources]
-
-## 🛡️ Citizen Action
-[What should the reader do?]
+## 📝 Important Steps
+[Actionable bullet points for the voter]
 """
 
-TIMELINE_SYSTEM = """You are "Jhooth Pakdo" timeline analyst. Given a topic related to Indian elections or politics, produce a structured JSON timeline of key events, misinformation incidents, and fact-checks.
+PROCESS_SYSTEM = """You are "Chunav Guide" timeline assistant. Given an election stage or topic, produce a structured JSON timeline of the election process.
 
 Return ONLY valid JSON in this exact format:
 {
   "topic": "Topic title",
-  "summary": "Brief overview",
+  "summary": "Brief overview of this process",
   "events": [
     {
-      "date": "YYYY-MM-DD or approximate",
-      "title": "Event title",
-      "description": "What happened",
-      "type": "fact|misinfo|correction|event",
-      "sources": ["source1", "source2"]
+      "date": "Timeline or duration (e.g., '14 days before polling')",
+      "title": "Step title",
+      "description": "Detailed explanation of this step",
+      "type": "registration|notification|campaign|polling|counting",
+      "sources": ["Election Commission"]
     }
   ],
   "misinfo_count": 0,
@@ -105,22 +93,19 @@ Return ONLY valid JSON in this exact format:
 }
 
 Rules:
-- Be politically neutral.
-- Only include verifiable events.
-- Mark misinformation clearly.
-- Include corrections/fact-checks where applicable.
-- Sort events chronologically.
+- Be strictly educational and neutral.
+- Focus on the STEPS and TIMELINES of the election process.
 """
 
 
 async def fact_check_claim(claim: str, conversation_history: list[dict] | None = None) -> str:
     """
-    Send a claim to Gemini for fact-checking analysis.
+    Send a query to the Election Assistant.
     Supports multi-turn conversation via history.
+    Uses Google Search Grounding.
     """
     contents = []
 
-    # Add conversation history if provided
     if conversation_history:
         for msg in conversation_history:
             role = "user" if msg["role"] == "user" else "model"
@@ -131,7 +116,6 @@ async def fact_check_claim(claim: str, conversation_history: list[dict] | None =
                 )
             )
 
-    # Add the current claim
     contents.append(
         types.Content(
             role="user",
@@ -140,9 +124,10 @@ async def fact_check_claim(claim: str, conversation_history: list[dict] | None =
     )
 
     config = types.GenerateContentConfig(
-        system_instruction=FACT_CHECK_SYSTEM,
-        temperature=0.3,  # Low temperature for factual accuracy
+        system_instruction=ASSISTANT_SYSTEM,
+        temperature=0.3,
         max_output_tokens=2048,
+        tools=[{"google_search": {}}],  # Meaningful Google Services Integration!
     )
 
     response = await _call_with_fallback(config, contents)
@@ -151,20 +136,21 @@ async def fact_check_claim(claim: str, conversation_history: list[dict] | None =
 
 async def generate_timeline(topic: str) -> dict:
     """
-    Generate a structured misinformation timeline for a given topic.
+    Generate a structured timeline of the election process for a given topic.
     Returns parsed JSON.
     """
     contents = [
         types.Content(
             role="user",
-            parts=[types.Part.from_text(text=f"Create a misinformation timeline for: {topic}")],
+            parts=[types.Part.from_text(text=f"Explain the election process timeline for: {topic}")],
         )
     ]
     config = types.GenerateContentConfig(
-        system_instruction=TIMELINE_SYSTEM,
+        system_instruction=PROCESS_SYSTEM,
         temperature=0.2,
         max_output_tokens=4096,
         response_mime_type="application/json",
+        tools=[{"google_search": {}}],  # Google Search Integration
     )
 
     response = await _call_with_fallback(config, contents)
@@ -172,7 +158,6 @@ async def generate_timeline(topic: str) -> dict:
     try:
         return json.loads(response.text)
     except json.JSONDecodeError:
-        # Attempt to extract JSON from markdown code fences
         match = re.search(r"```(?:json)?\s*([\s\S]*?)```", response.text)
         if match:
             return json.loads(match.group(1))
