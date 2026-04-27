@@ -10,4 +10,5 @@ COPY frontend/ ./frontend/
 
 EXPOSE 8080
 
-CMD sh -c "cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"
+WORKDIR /app/backend
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
