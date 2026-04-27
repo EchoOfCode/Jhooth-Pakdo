@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jhooth Pakdo — India's Election Misinformation Firewall</title>
+    <meta name="description" content="AI-powered fact-checking tool to combat election misinformation in India. Verify claims, news, and WhatsApp forwards instantly." />
+    <meta name="keywords" content="fact check, India elections, misinformation, fake news, jhooth pakdo" />
+    <meta name="theme-color" content="#0f0f1a" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+    <!-- ─── Animated background particles ─── -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- ─── Header ─── -->
+    <header id="app-header">
+        <div class="header-inner">
+            <div class="logo-group">
+                <div class="shield-icon" id="shield-icon">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 2L4 10V19C4 29.5 11 37 20 39C29 37 36 29.5 36 19V10L20 2Z" fill="url(#shieldGrad)" stroke="url(#shieldStroke)" stroke-width="1.5"/>
+                        <path d="M14 20L18 24L26 16" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="check-mark"/>
+                        <defs>
+                            <linearGradient id="shieldGrad" x1="4" y1="2" x2="36" y2="39">
+                                <stop stop-color="#FF6B35" stop-opacity="0.2"/>
+                                <stop offset="1" stop-color="#1A8C5B" stop-opacity="0.2"/>
+                            </linearGradient>
+                            <linearGradient id="shieldStroke" x1="4" y1="2" x2="36" y2="39">
+                                <stop stop-color="#FF6B35"/>
+                                <stop offset="0.5" stop-color="#FFFFFF"/>
+                                <stop offset="1" stop-color="#1A8C5B"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="logo-text">झूठ पकड़ो</h1>
+                    <p class="logo-subtitle">Jhooth Pakdo</p>
+                </div>
+            </div>
+            <nav class="nav-tabs" id="nav-tabs">
+                <button class="nav-tab active" data-view="chat" id="nav-chat">
+                    <span class="tab-icon">🔍</span> Fact Check
+                </button>
+                <button class="nav-tab" data-view="timeline" id="nav-timeline">
+                    <span class="tab-icon">📊</span> Timeline
+                </button>
+                <button class="nav-tab" data-view="about" id="nav-about">
+                    <span class="tab-icon">ℹ️</span> About
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ─── Main Content ─── -->
+    <main id="main-content">
+
+        <!-- ═══ CHAT VIEW ═══ -->
+        <section id="view-chat" class="view active">
+            <!-- Hero -->
+            <div class="hero-section" id="hero-section">
+                <div class="hero-badge">🛡️ AI-Powered • Politically Neutral • Citizen-First</div>
+                <h2 class="hero-title">
+                    Got a <span class="gradient-text">suspicious claim</span>?
+                    <br/>Let AI verify it.
+                </h2>
+                <p class="hero-desc">
+                    Paste any WhatsApp forward, news headline, or social media post.
+                    <br/>We'll analyse it with AI and give you the truth — in seconds.
+                </p>
+
+                <!-- Quick examples -->
+                <div class="quick-chips" id="quick-chips">
+                    <span class="chip" data-claim="EVM machines were hacked in the 2024 Lok Sabha elections">EVM Hacking Claims</span>
+                    <span class="chip" data-claim="BJP promised Rs 15 lakh in every citizen's bank account">₹15 Lakh Promise</span>
+                    <span class="chip" data-claim="Congress manifesto says they will redistribute Hindu temple wealth">Temple Wealth Claim</span>
+                    <span class="chip" data-claim="A deepfake video shows a political leader making inflammatory statements before elections">Deepfake Videos</span>
+                </div>
+            </div>
+
+            <!-- Chat messages -->
+            <div class="chat-container" id="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages injected here -->
+                </div>
+            </div>
+
+            <!-- Input area -->
+            <div class="input-area" id="input-area">
+                <div class="input-wrapper">
+                    <textarea
+                        id="claim-input"
+                        placeholder="Paste a claim, headline, or WhatsApp forward here…"
+                        rows="1"
+                        maxlength="2000"
+                    ></textarea>
+                    <button id="send-btn" class="send-btn" aria-label="Analyse claim">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 2L11 13"/>
+                            <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="input-footer">
+                    <span class="char-count" id="char-count">0 / 2000</span>
+                    <span class="disclaimer">AI-generated analysis • Always verify with official sources</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ TIMELINE VIEW ═══ -->
+        <section id="view-timeline" class="view">
+            <div class="timeline-header">
+                <h2 class="section-title">📊 Misinformation Timeline</h2>
+                <p class="section-desc">Track how misinformation evolves around a political topic.</p>
+                <div class="timeline-input-group">
+                    <input
+                        type="text"
+                        id="timeline-topic"
+                        placeholder="Enter a topic (e.g., EVM controversy, farm laws…)"
+                        maxlength="200"
+                    />
+                    <button id="timeline-btn" class="btn-primary">Generate Timeline</button>
+                </div>
+            </div>
+            <div class="timeline-content" id="timeline-content">
+                <!-- Timeline rendered here -->
+            </div>
+        </section>
+
+        <!-- ═══ ABOUT VIEW ═══ -->
+        <section id="view-about" class="view">
+            <div class="about-container">
+                <div class="about-card glass-card">
+                    <h2 class="section-title">🛡️ About Jhooth Pakdo</h2>
+                    <p>
+                        <strong>Jhooth Pakdo</strong> ("Catch the Lie") is India's first citizen-first,
+                        AI-powered election misinformation firewall. In a landscape where
+                        <strong>₹400+ crore was spent on AI-generated political content</strong> —
+                        much of it disinformation — there existed <em>zero</em> neutral tool for
+                        ordinary citizens to fight back.
+                    </p>
+                    <div class="about-stats">
+                        <div class="stat-card">
+                            <span class="stat-number">$50M+</span>
+                            <span class="stat-label">Spent on AI content in 2024 elections</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number">0</span>
+                            <span class="stat-label">Neutral citizen tools before this</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number">900M+</span>
+                            <span class="stat-label">Indian voters who need this</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-card glass-card">
+                    <h3>🧠 How It Works</h3>
+                    <div class="how-it-works">
+                        <div class="step">
+                            <div class="step-num">1</div>
+                            <div>
+                                <strong>Paste the Claim</strong>
+                                <p>Copy any WhatsApp forward, tweet, headline, or claim.</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num">2</div>
+                            <div>
+                                <strong>AI Analyses</strong>
+                                <p>Gemini 2.0 Flash cross-references with verified sources, official data, and known misinformation patterns.</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num">3</div>
+                            <div>
+                                <strong>Get Your Verdict</strong>
+                                <p>TRUE ✅, FALSE ❌, MISLEADING ⚠️, UNVERIFIABLE 🔍, or SATIRE 🎭 — with sources and citizen action steps.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-card glass-card">
+                    <h3>⚖️ Our Principles</h3>
+                    <ul class="principles-list">
+                        <li><strong>🏛️ Politically Neutral</strong> — No party affiliation, no bias.</li>
+                        <li><strong>🔍 Source-First</strong> — Every verdict cites verifiable sources.</li>
+                        <li><strong>🗣️ Multilingual</strong> — Works in Hindi, English, and Hinglish.</li>
+                        <li><strong>🔒 Private</strong> — We don't store your queries.</li>
+                        <li><strong>🌐 Open</strong> — Built with open tools, transparent methodology.</li>
+                    </ul>
+                </div>
+
+                <div class="about-card glass-card tech-stack">
+                    <h3>🔧 Tech Stack</h3>
+                    <div class="tech-badges">
+                        <span class="tech-badge">🐍 Python + FastAPI</span>
+                        <span class="tech-badge">✨ Gemini 2.0 Flash</span>
+                        <span class="tech-badge">🌐 Vanilla HTML/CSS/JS</span>
+                        <span class="tech-badge">🐳 Docker</span>
+                        <span class="tech-badge">☁️ Google Cloud Run</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
